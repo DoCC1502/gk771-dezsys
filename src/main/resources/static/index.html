@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Warehouse Daten</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background: #eee; }
+        label, select { margin-right: 15px; }
+    </style>
+</head>
+<body>
+<h1>Lagerdaten</h1>
+
+<!-- Dropdown für Warehouse Auswahl -->
+<label for="warehouseSelect">Warehouse auswählen:</label>
+<select id="warehouseSelect">
+    <option value="001">Lagerhaus Wien</option>
+    <option value="002">Lagerhaus Salzburg</option>
+    <option value="003">Lagerhaus Graz</option>
+</select>
+
+<!-- Standort-Infos -->
+<div id="warehouseInfo"></div>
+
+<!-- Filter -->
+<label for="productName">Produktname:</label>
+<input type="text" id="productName" placeholder="z.B. Mouse">
+
+<!-- Tabelle -->
+<table id="productTable">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Kategorie</th>
+        <th>Menge</th>
+        <th>Einheit</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+    let warehouseData = null;
+
+    async function loadData() {
+        const selectedWarehouse = document.getElementById("warehouseSelect").value;
+        const url = `/warehouse/${selectedWarehouse}/json`; // dynamisch
+
+        try {
+            const response = await fetch(url);
+            warehouseData = await response.json();
+            renderData();
+        } catch (e) {
+            console.error("Fehler beim Laden der Daten:", e);
+        }
+    }
+
+    function renderData() {
+        if (!warehouseData) return;
+
+        const tbody = document.querySelector("#productTable tbody");
+        tbody.innerHTML = "";
+
+
+        const productFilter = document.getElementById("productName").value.toLowerCase();
+
+        // Standort-Infos anzeigen
+        document.getElementById("warehouseInfo").innerHTML = `
+                <h2>${warehouseData.warehouseName}</h2>
+                <p>${warehouseData.warehouseAddress}, ${warehouseData.warehousePostalCode} ${warehouseData.warehouseCity}, ${warehouseData.warehouseCountry}</p>
+                <p><b>Timestamp:</b> ${warehouseData.timestamp}</p>
+            `;
+
+
+
+        // Produkte rendern mit Filter
+        warehouseData.products
+            .filter(p => !productFilter || p.productName.toLowerCase().includes(productFilter))
+            .forEach(p => {
+                const row = `
+                        <tr>
+                            <td>${p.productID}</td>
+                            <td>${p.productName}</td>
+                            <td>${p.productCategory}</td>
+                            <td>${p.productQuantity}</td>
+                            <td>${p.productUnit}</td>
+                        </tr>`;
+                tbody.innerHTML += row;
+            });
+    }
+
+    // Live-Filter bei Tippen
+
+    document.getElementById("productName").addEventListener("input", renderData);
+
+    // Laden neu triggern, wenn anderes Warehouse gewählt wird
+    document.getElementById("warehouseSelect").addEventListener("change", loadData);
+
+    // Initial laden (mit default 001)
+    loadData();
+</script>
+</body>
+</html>

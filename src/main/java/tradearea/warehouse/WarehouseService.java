@@ -1,7 +1,7 @@
-package rest.warehouse;
+package tradearea.warehouse;
 
 import org.springframework.stereotype.Service;
-import rest.model.WarehouseData;
+import tradearea.model.WarehouseData;
 
 @Service
 public class WarehouseService {
